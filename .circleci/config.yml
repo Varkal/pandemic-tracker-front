@@ -1,0 +1,71 @@
+version: 2.1
+
+orbs:
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+
+executors:
+  node:
+    docker:
+      - image: node:14
+
+jobs:
+  build:
+    executor: node
+    steps:
+      - checkout
+      - restore_cache:
+          key: node_modules_{{ checksum "package-lock.json" }}
+      - run: npm install
+      - run: npm run build
+      - save_cache:
+          key: node_modules_{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+  test:
+    executor: node
+    steps:
+      - attach_workspace:
+          at: "."
+      - run: npm test
+  publish:
+    executor: gcp-gcr/default
+    environment:
+      GOOGLE_PROJECT_ID: iroh-consulting
+      GOOGLE_COMPUTE_REGION: europe-west1
+    steps:
+      - gcp-gcr/gcr-auth
+      - gcp-gcr/build-image:
+          attach-workspace: true
+          image: pandemic-tracker-api
+          registry-url: eu.gcr.io
+          tag: latest
+      - gcp-gcr/push-image:
+          digest-path: digest.txt
+          image: pandemic-tracker-api
+          registry-url: eu.gcr.io
+          tag: latest
+      - run:
+          command: |
+            echo "Digest is: $(<digest.txt)"
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+workflows:
+  version: 2
+  main:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - publish:
+          filters:
+            branches:
+              only: [main]
+          requires:
+            - test
