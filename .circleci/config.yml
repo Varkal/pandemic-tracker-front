@@ -40,12 +40,12 @@ jobs:
       - gcp-gcr/gcr-auth
       - gcp-gcr/build-image:
           attach-workspace: true
-          image: pandemic-tracker-api
+          image: pandemic-tracker-front
           registry-url: eu.gcr.io
           tag: latest
       - gcp-gcr/push-image:
           digest-path: digest.txt
-          image: pandemic-tracker-api
+          image: pandemic-tracker-front
           registry-url: eu.gcr.io
           tag: latest
       - run:
