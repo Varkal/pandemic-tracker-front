@@ -15,7 +15,6 @@ jobs:
       - checkout
       - restore_cache:
           key: node_modules_{{ checksum "package-lock.json" }}
-      - run: echo '{"baseUrl":"http://localhost:3000","apiKey":"toto"}' > public/config.json
       - run: npm install
       - run: npm run build
       - save_cache:

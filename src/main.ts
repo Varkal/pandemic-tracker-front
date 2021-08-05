@@ -9,11 +9,15 @@ Vue.config.productionTip = false;
 
 Vue.use(Vuetify);
 
-new Vue({
-  vuetify: new Vuetify({
-    theme: {},
-  }),
-  router,
-  store,
-  render: (h) => h(App),
-}).$mount("#app");
+(async function main() {
+  await store.dispatch("fetchConfig");
+
+  new Vue({
+    vuetify: new Vuetify({
+      theme: {},
+    }),
+    router,
+    store,
+    render: (h) => h(App),
+  }).$mount("#app");
+})();

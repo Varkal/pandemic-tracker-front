@@ -1,29 +1,42 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import config from "../../public/config.json";
 import { Game } from "../interfaces/game.interface";
 
 Vue.use(Vuex);
-const baseUrl = config.baseUrl || `http://${window.location.hostname}:3000`;
-const apiKey = config.apiKey;
 
 export interface PandemicTrackerState {
   currentGame: Game | null;
+  config: {
+    baseUrl: string;
+    apiKey?: string;
+  } | null;
 }
 
 export default new Vuex.Store<PandemicTrackerState>({
   state: {
     currentGame: null,
+    config: null,
   },
   mutations: {
+    setConfig(state, config) {
+      state.config = config;
+    },
     setCurrentGame(state, game) {
       state.currentGame = game;
     },
   },
   actions: {
-    async fetchCurrentGame({ commit }) {
-      const response = await fetch(`${baseUrl}/games/latest`, {
-        headers: { ...(apiKey && { Authorization: apiKey }) },
+    async fetchConfig({ commit }) {
+      const config = await fetch(`config.json`).then((response) =>
+        response.json()
+      );
+      commit("setConfig", config);
+    },
+    async fetchCurrentGame({ commit, state }) {
+      const response = await fetch(`${state.config!.baseUrl}/games/latest`, {
+        headers: {
+          ...(state.config!.apiKey && { Authorization: state.config!.apiKey }),
+        },
       });
       commit("setCurrentGame", await response.json());
     },
@@ -31,12 +44,16 @@ export default new Vuex.Store<PandemicTrackerState>({
       let response = null;
       for (const card of cards) {
         response = await fetch(
-          `${baseUrl}/games/${state.currentGame!.id}/draw-propagation/${
-            card.id
-          }`,
+          `${state.config!.baseUrl}/games/${
+            state.currentGame!.id
+          }/draw-propagation/${card.id}`,
           {
             method: "POST",
-            headers: { ...(apiKey && { Authorization: apiKey }) },
+            headers: {
+              ...(state.config!.apiKey && {
+                Authorization: state.config!.apiKey,
+              }),
+            },
           }
         );
       }
@@ -44,18 +61,24 @@ export default new Vuex.Store<PandemicTrackerState>({
     },
     async addStack({ commit, state }) {
       const response = await fetch(
-        `${baseUrl}/games/${state.currentGame!.id}/stack/`,
+        `${state.config!.baseUrl}/games/${state.currentGame!.id}/stack/`,
         {
           method: "POST",
-          headers: { ...(apiKey && { Authorization: apiKey }) },
+          headers: {
+            ...(state.config!.apiKey && {
+              Authorization: state.config!.apiKey,
+            }),
+          },
         }
       );
       commit("setCurrentGame", await response.json());
     },
-    async newGame({ commit }) {
-      const response = await fetch(`${baseUrl}/games/`, {
+    async newGame({ commit, state }) {
+      const response = await fetch(`${state.config!.baseUrl}/games/`, {
         method: "POST",
-        headers: { ...(apiKey && { Authorization: apiKey }) },
+        headers: {
+          ...(state.config!.apiKey && { Authorization: state.config!.apiKey }),
+        },
       });
       commit("setCurrentGame", await response.json());
     },
