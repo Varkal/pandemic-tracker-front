@@ -17,6 +17,9 @@ http {
   server {
     listen 80;
     server_name localhost;
+    location ~ /healthcheck {
+      return 200 ok;
+    }
     location / {
       auth_basic "Pandemic Tracker";
       auth_basic_user_file /etc/nginx/.htpasswd; 
