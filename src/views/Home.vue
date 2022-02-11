@@ -43,7 +43,21 @@
                 >
               </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title>{{ card.name }}</v-list-item-title>
+                <v-list-item-title class="d-flex align-center">
+                  <span
+                    :class="
+                      card.cardType === 'exposition'
+                        ? 'green--text lighten-2'
+                        : ''
+                    "
+                    >{{ card.name }}</span
+                  >
+                  <v-icon
+                    color="green lighten-2"
+                    v-if="card.cardType === 'exposition'"
+                    >mdi-biohazard</v-icon
+                  >
+                </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
